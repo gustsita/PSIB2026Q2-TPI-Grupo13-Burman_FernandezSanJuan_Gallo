@@ -31,11 +31,32 @@ docs/                  # anteproyecto y material de la cátedra
 
 Requiere Python 3.10 o superior.
 
+### Linux / macOS
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 python scripts/check_env.py
+```
+
+### Windows (PowerShell)
+
+Desde la raíz del proyecto (`PSIB_TPI_GRUPO_13`):
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python scripts\check_env.py
+```
+
+Si Windows no reconoce `python`, usar `py` en su lugar. Si PowerShell bloquea la activación,
+permitir scripts para la sesión actual y volver a intentarlo:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
 ```
 
 Para Jupyter / VS Code, elegir el kernel `.venv` (o registrarlo con

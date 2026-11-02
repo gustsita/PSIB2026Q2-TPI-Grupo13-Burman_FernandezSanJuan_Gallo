@@ -24,14 +24,20 @@ from .config import load_config
 
 
 def extraer_parches(img, mascara, tam=32, n=10, margen=20, rng=None,
-                    media_min=20, desvio_min=3, saturado=250, max_intentos=2000):
+                    media_min=20, desvio_min=3, saturado=250, max_intentos=2000,
+                    excluir=None):
     """Devuelve n parches tam×tam de tejido, alejados al menos `margen` px de la lesión.
 
     Se sortean posiciones al azar y se descartan los parches que:
     - tocan la lesión dilatada `margen` px (disco de radio `margen`);
     - caen en el fondo negro fuera del sector de la sonda: media < media_min,
       desvío < desvio_min o algún píxel en 0;
-    - tienen marcas del ecógrafo: algún píxel >= `saturado`;
+    - tienen algún píxel saturado (>= `saturado`): son valores recortados por el
+      equipo, que ya no siguen la distribución del speckle, y casi siempre caen en
+      tejido muy brillante (piel, fibras). No son marcas: las marcas se sacan antes
+      con artefactos.limpiar() (ver notebook 01, sección 2);
+    - tocan algún píxel de `excluir` (por ejemplo, la máscara de marcas que devuelve
+      artefactos.limpiar(): ahí el tejido fue rellenado por inpainting y no es speckle);
     - se superponen con un parche ya elegido.
 
     Devuelve (parches, esquinas): un array (k, tam, tam) y las esquinas superiores
@@ -43,6 +49,8 @@ def extraer_parches(img, mascara, tam=32, n=10, margen=20, rng=None,
 
     disco = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * margen + 1, 2 * margen + 1))
     prohibida = cv2.dilate(mascara.astype(np.uint8), disco).astype(bool)
+    if excluir is not None:
+        prohibida |= excluir
 
     alto, ancho = img.shape
     parches, esquinas = [], []
