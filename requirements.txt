@@ -10,6 +10,7 @@ Pillow
 
 # Clasificador y métricas
 scikit-learn
+joblib
 
 # Gráficos
 matplotlib
