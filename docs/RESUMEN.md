@@ -11,7 +11,7 @@ están en cada notebook (`notebooks/00` a `06`).
 ## Datos
 
 BUSI (Al-Dhabyani et al., 2020): 780 ecografías de mama (437 benignas, 210 malignas, 133 normales),
-equipo LOGIQ E9, con máscara manual de la lesión. Las partes 3 a 6 trabajan con las **647 imágenes
+equipos LOGIQ E9 y LOGIQ E9 Agile, con máscara manual de la lesión. Las partes 3 a 6 trabajan con las **647 imágenes
 con lesión**.
 
 ## Cadena de decisiones
