@@ -28,7 +28,7 @@ def fila_caso(id_caso, caso):
     warnings.filterwarnings("ignore", category=FutureWarning)
     img, mascara = cargar_caso(caso)
     semilla = segmentacion.semilla_desde_mascara(mascara)      # simula el clic del usuario
-    _, _, valores = modelo.analizar_lesion(img, semilla)
+    *_, valores = modelo.analizar_lesion(img, semilla)
     return None if valores is None else {"id": id_caso, "clase": caso["clase"], **valores}
 
 
@@ -55,5 +55,6 @@ metricas = {"auc": float(roc_auc_score(y, prob)),
 print("Validación cruzada agrupada por duplicados:")
 print(f"  AUC {metricas['auc']:.3f}  sensibilidad {metricas['sensibilidad']:.2f}  especificidad {metricas['especificidad']:.2f}")
 
-modelo.guardar(modelo.entrenar(tabla[columnas], y), columnas, metricas)
+referencia = tabla.groupby("clase")[columnas].median().to_dict("index")     # valores típicos de cada clase
+modelo.guardar(modelo.entrenar(tabla[columnas], y), columnas, metricas, referencia)
 print(f"Modelo guardado en {modelo.ARCHIVO_MODELO}")
