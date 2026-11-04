@@ -24,7 +24,7 @@ src/busi/
 notebooks/             # un notebook por parte (00 = exploración del dataset)
 data/raw/              # dataset (NO se sube a GitHub)
 outputs/               # figuras y tablas generadas (no se sube)
-docs/                  # anteproyecto y material de la cátedra
+docs/                  # anteproyecto, material de la cátedra y RESUMEN.md
 ```
 
 ## Puesta en marcha
@@ -96,15 +96,18 @@ Cada parte es un módulo en `src/busi/` (las funciones) y un notebook (las prueb
 figuras y conclusiones). Los módulos traen la explicación del método y funciones con
 `TODO` para completar. Se avanza de a una función por vez, con un commit cada una.
 
-| Parte | Módulo | Necesita | Entrega |
-|---|---|---|---|
-| 0 | `datos.py` + `00_exploracion` | dataset | avances 20/10 |
-| 1 | `artefactos.py` | Parte 0 | avances 20/10 |
-| 2 | `ruido.py` | Parte 1 (parches sin marcas) | avances 20/10 |
-| 3 | `dominios.py` | Parte 0 (puede arrancar en paralelo con 1 y 2) | avances 20/10 |
-| 4 | `mapas.py` | Parte 3 (elegir el filtro) | avances 20/10 (primeros mapas) |
-| 5 | `segmentacion.py` | Parte 4 (elegir los mapas) | 27/10 |
-| 6 | `descriptores.py` | Parte 5 y máscaras manuales | 31/10 |
+| Parte | Módulo | Notebook | Necesita | Estado | Resultado principal |
+|---|---|---|---|---|---|
+| 0 | `datos.py` | `00_exploracion` | dataset | terminada | Lesión hipoecoica; malignas con menos contraste; duplicados y máscaras múltiples |
+| 1 | `artefactos.py` | `01_artefactos` | Parte 0 | terminada | Top-hat + inpainting biharmónico (PSNR 33,3 dB) |
+| 2 | `ruido.py` | `02_ruido` | Parte 1 | terminada | Speckle Gamma/Nakagami, no Rayleigh (μ/σ ≈ 4,6); compresión log del equipo |
+| 3 | `dominios.py` | `03_dominios` | Parte 0 | terminada | Textura sin filtrar; brillo y bordes sobre la mediana 7 × 7 |
+| 4 | `mapas.py` | `04_mapas` | Parte 3 | terminada | Media local (AUC 0,88), σ/μ y gradiente |
+| 5 | `segmentacion.py` | `05_segmentacion` | Parte 4 | terminada | Crecimiento de regiones, ventana 200 px: Dice 0,65 (453 imágenes de evaluación) |
+| 6 | `descriptores.py` | `06_descriptores` | Partes 5 y máscaras | terminada | 22/26 descriptores significativos; clasificador AUC 0,99 con máscara manual (sesgada), 0,85 con segmentación propia |
+
+El resumen de todo el trabajo, con los números y las decisiones de cada parte, está en
+[`docs/RESUMEN.md`](docs/RESUMEN.md).
 
 Las Partes 1, 2 y 3 se pueden hacer en paralelo, una por integrante. Las Partes 4 y 6
 también pueden avanzar en paralelo con la 5, porque usan las máscaras manuales.
