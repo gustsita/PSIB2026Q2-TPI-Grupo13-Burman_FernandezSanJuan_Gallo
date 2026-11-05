@@ -12,6 +12,7 @@ El sistema completo es semiautomático: a partir de una ecografía y un clic den
 
 ```
 config.yaml            # DATA_DIR y OUTPUT_DIR: rutas al dataset y a los resultados
+interfaz.py            # interfaz gráfica: cargar una ecografía, hacer clic en la lesión y ver cada paso
 requirements.txt       # dependencias
 scripts/
     check_env.py       # verifica dependencias y que el dataset esté en DATA_DIR
@@ -85,6 +86,22 @@ Kaggle: <https://www.kaggle.com/datasets/aryashah2k/breast-ultrasound-images-dat
    Tiene que quedar `data/raw/Dataset_BUSI_with_GT/{benign,malignant,normal}/`.
    Si la carpeta tiene otro nombre, ajustar `DATA_DIR` en `config.yaml`.
 3. Correr `python scripts/check_env.py`: debería mostrar 437 benign, 210 malignant y 133 normal.
+
+## Interfaz gráfica
+
+Es el objetivo opcional del anteproyecto: cargar una ecografía, marcar la lesión con un clic y ver
+los mapas, la segmentación y los descriptores. Desde la raíz del repo, con el entorno activado:
+
+```bash
+streamlit run interfaz.py
+```
+
+Se abre en el navegador (`http://localhost:8501`). En la barra de la izquierda se elige una imagen de
+BUSI o se sube una propia; después se hace **un clic dentro de la lesión**. Aparecen la clasificación
+(benigna/maligna y su probabilidad), la segmentación (y el Dice con la máscara del radiólogo si la
+imagen es de BUSI) y tres pestañas con cada paso: las marcas del ecógrafo que se borraron (Parte 1),
+los mapas de características (Parte 4) y los 26 descriptores comparados con las medianas de cada
+clase (Parte 6). Usa el mismo modelo de `modelos/` que `scripts/predecir.py`.
 
 ## Clasificar casos nuevos (casos incógnita)
 

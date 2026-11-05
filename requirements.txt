@@ -22,5 +22,6 @@ PyYAML
 jupyterlab
 ipykernel
 
-# Interfaz (opcional)
+# Interfaz (opcional): streamlit run interfaz.py
 streamlit
+streamlit-image-coordinates
