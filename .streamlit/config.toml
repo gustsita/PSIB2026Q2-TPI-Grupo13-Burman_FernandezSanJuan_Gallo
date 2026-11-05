@@ -1,0 +1,13 @@
+# Apariencia de la interfaz (streamlit run interfaz.py)
+[theme]
+base = "light"
+primaryColor = "#0F766E"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F1F5F9"
+textColor = "#1E293B"
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
