@@ -115,28 +115,57 @@ def recorte(mascara, forma, margen=60):
 
 # ---- Página -------------------------------------------------------------------
 
-st.set_page_config(page_title="Ecografía de mama – Grupo 13", layout="wide")
-st.title("Segmentación y caracterización de lesiones en ecografía de mama")
-st.caption("PSIB 2026Q2 – TPI – Grupo 13 · Dataset BUSI · Herramienta de apoyo, **no** un diagnóstico.")
+st.set_page_config(page_title="Ecografía de mama – Grupo 13", page_icon="🩺", layout="wide")
+st.markdown("""
+<style>
+.block-container {padding-top: 2rem;}
+.pasos {display: flex; gap: .6rem; flex-wrap: wrap; margin: .2rem 0 1.2rem 0;}
+.paso {background: #E6F2F1; color: #0F5E57; border-radius: 999px; padding: .3rem .9rem; font-size: .92rem;}
+.tarjeta {border-radius: 14px; padding: 1.1rem 1.3rem; margin-bottom: .8rem;}
+.tarjeta h2 {margin: 0; font-size: 2.1rem; letter-spacing: .04em;}
+.tarjeta p {margin: .2rem 0 0 0;}
+.benigna {background: #E7F6EC; border: 1px solid #9ED9B0; color: #14532D;}
+.maligna {background: #FDECEC; border: 1px solid #F3A6A6; color: #7F1D1D;}
+.barra {position: relative; height: 12px; border-radius: 6px; margin: .7rem 0 .2rem 0;
+        background: linear-gradient(90deg, #4CAF50 0%, #F2C94C 50%, #E5484D 100%);}
+.marca {position: absolute; top: -5px; width: 4px; height: 22px; background: #1E293B; border-radius: 2px;}
+.escala {display: flex; justify-content: space-between; font-size: .78rem; opacity: .75;}
+.dato {background: #F1F5F9; border-radius: 12px; padding: .8rem 1rem; height: 100%;}
+.dato b {font-size: 1.5rem;}
+.leyenda span {display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin: 0 .3rem 0 .8rem; vertical-align: -1px;}
+</style>
+""", unsafe_allow_html=True)
+
+st.title("🩺 Lesiones en ecografía de mama")
+st.markdown("Segmentación y clasificación **benigna / maligna** a partir de un clic · PSIB 2026Q2 – TPI – Grupo 13")
+st.markdown('<div class="pasos"><div class="paso">① Elegí una ecografía (barra de la izquierda)</div>'
+            '<div class="paso">② Hacé clic dentro de la lesión</div>'
+            '<div class="paso">③ Mirá el resultado y cada paso del método</div></div>', unsafe_allow_html=True)
 
 guardado = cargar_modelo()
 casos = casos_busi()
+m = guardado["metricas"]
 
-# 1. Elegir la imagen
+# ① Elegir la imagen
 with st.sidebar:
-    st.header("1. Imagen")
-    opciones = ["Subir una imagen"] if casos is None else ["Imagen de BUSI", "Subir una imagen"]
-    origen = st.radio("Origen", opciones, label_visibility="collapsed")
-    mascara_manual = None
-    if origen == "Imagen de BUSI":
-        clase = st.selectbox("Clase según el dataset", ["benign", "malignant"],
-                             format_func=lambda c: {"benign": "benignas", "malignant": "malignas"}[c])
-        ids = sorted(casos.index[casos["clase"] == clase], key=lambda s: int(s.split("(")[1].rstrip(")")))
-        id_caso = st.selectbox("Imagen", ids)
+    st.header("① Ecografía")
+    opciones = ["Subir una imagen"] if casos is None else ["Del dataset BUSI", "Subir una imagen"]
+    origen = st.radio("Origen", opciones, horizontal=True, label_visibility="collapsed")
+    mascara_manual, clase_real = None, None
+    if origen == "Del dataset BUSI":
+        clase = st.segmented_control("Tipo de lesión (según el dataset)", ["Benignas", "Malignas"],
+                                     default="Benignas", key="clase_elegida") or "Benignas"
+        codigo = "benign" if clase == "Benignas" else "malignant"
+        ids = sorted(casos.index[casos["clase"] == codigo], key=lambda s: int(s.split("(")[1].rstrip(")")))
+        if st.session_state.get("id_caso") not in ids:
+            st.session_state["id_caso"] = ids[0]
+        if st.button("🎲 Otra imagen al azar", width="stretch"):
+            st.session_state["id_caso"] = str(np.random.choice(ids))
+        id_caso = st.selectbox(f"Imagen ({len(ids)} {clase.lower()})", ids, key="id_caso")
         img = cargar_imagen(casos.loc[id_caso, "ruta"])
         mascara_manual = segmentacion.lesion_principal(cargar_mascara(casos.loc[id_caso, "mascaras"], img.shape))
-        nombre = id_caso
-        mostrar_manual = st.checkbox("Mostrar la máscara del radiólogo (amarillo)", value=False)
+        nombre, clase_real = id_caso, ("benigna" if codigo == "benign" else "maligna")
+        mostrar_manual = st.toggle("Mostrar el contorno del radiólogo (amarillo)", value=False)
     else:
         archivo = st.file_uploader("Ecografía (PNG o JPG)", type=["png", "jpg", "jpeg", "bmp", "tif", "tiff"])
         if archivo is None:
@@ -146,23 +175,24 @@ with st.sidebar:
         nombre = archivo.name
         mostrar_manual = False
 
-    st.header("2. Semilla")
-    st.write("Hacé **un clic dentro de la lesión** en la imagen de la izquierda.")
-    if mascara_manual is not None and st.button("Usar el centro de la máscara (clic simulado)"):
+    st.header("② Clic en la lesión")
+    st.write("Hacé **un clic dentro de la lesión** (la zona oscura) en la imagen grande.")
+    if mascara_manual is not None and st.button("Elegir el punto por mí", width="stretch",
+                                                 help="Usa el punto más central del contorno del radiólogo."):
         st.session_state["semilla"] = (nombre, tuple(int(v) for v in segmentacion.semilla_desde_mascara(mascara_manual)))
 
-    m = guardado["metricas"]
     st.divider()
-    st.markdown(f"**Rendimiento del sistema** (validación cruzada, {m['lesiones']} lesiones):  \n"
-                f"AUC {m['auc']:.2f} · sensibilidad {m['sensibilidad']:.2f} · especificidad {m['especificidad']:.2f}")
-    st.caption("El resultado depende del clic, y el modelo supone que hay una lesión: no detecta imágenes normales.")
+    st.caption(f"**Qué tan bien anda:** en {m['lesiones']} lesiones de BUSI acierta el {100 * m['sensibilidad']:.0f} % "
+               f"de las malignas y el {100 * m['especificidad']:.0f} % de las benignas (AUC {m['auc']:.2f}). "
+               "El resultado cambia según dónde se haga clic, y supone que hay una lesión. "
+               "Es una herramienta de apoyo, **no un diagnóstico**.")
 
 # la semilla guardada solo vale para la imagen en la que se marcó
 semilla = None
 if st.session_state.get("semilla") and st.session_state["semilla"][0] == nombre:
     semilla = st.session_state["semilla"][1]
 
-col_clic, col_resultado = st.columns([1.1, 1])
+col_clic, col_resultado = st.columns([1.15, 1], gap="large")
 
 with col_clic:
     st.subheader(nombre)
@@ -171,18 +201,19 @@ with col_clic:
         base = pintar(base, contorno(mascara_manual), COLOR_MANUAL)
     imagen_clic = con_semilla(base, semilla) if semilla else Image.fromarray(base)
     ancho = min(ANCHO_CLIC, img.shape[1])
-    clic = streamlit_image_coordinates(imagen_clic, width=ancho, key=f"clic_{nombre}")
+    clic = streamlit_image_coordinates(imagen_clic, width=ancho, key=f"clic_{nombre}", cursor="crosshair")
     if clic is not None:
         escala = img.shape[1] / clic["width"]
         nueva = (int(round(clic["y"] * escala)), int(round(clic["x"] * escala)))
         if nueva != semilla:
             st.session_state["semilla"] = (nombre, nueva)
             st.rerun()
-    st.caption("Cruz roja: semilla. Hacé clic de nuevo para moverla.")
+    st.caption("✚ rojo: tu clic. Hacé clic de nuevo para moverlo.")
 
 if semilla is None:
     with col_resultado:
-        st.info("Marcá la lesión con un clic para ver la segmentación y la clasificación.")
+        st.subheader("Resultado")
+        st.info("👈 Hacé clic dentro de la lesión para ver la segmentación y la clasificación.")
     st.stop()
 
 resultado, mapas = analizar(img, semilla)
@@ -191,19 +222,29 @@ mascara = resultado["mascara"]
 with col_resultado:
     st.subheader("Resultado")
     if resultado["clase"] is None:
-        st.error("La segmentación quedó vacía. Probá con un clic más adentro de la lesión.")
+        st.error("No se pudo segmentar desde ese punto. Probá con un clic más adentro de la lesión.")
         st.stop()
     p = resultado["probabilidad_maligna"]
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Clasificación", resultado["clase"].capitalize())
-    c2.metric("P(maligna)", f"{p:.2f}")
-    if mascara_manual is not None:
-        c3.metric("Dice con el radiólogo", f"{segmentacion.dice(mascara, mascara_manual):.2f}")
-    else:
-        c3.metric("Área segmentada", f"{resultado['area_px']} px")
-    st.progress(p, text="probabilidad de maligna (umbral 0,5)")
-    if origen == "Imagen de BUSI":
-        st.caption(f"Clase según el dataset: **{'maligna' if clase == 'malignant' else 'benigna'}**.")
+    estilo = "maligna" if resultado["clase"] == "maligna" else "benigna"
+    st.markdown(f"""
+<div class="tarjeta {estilo}">
+  <p>El modelo dice</p>
+  <h2>{resultado['clase'].upper()}</h2>
+  <div class="barra"><div class="marca" style="left: calc({100 * p:.1f}% - 2px);"></div></div>
+  <div class="escala"><span>benigna</span><span>probabilidad de maligna: <b>{100 * p:.0f} %</b></span><span>maligna</span></div>
+</div>""", unsafe_allow_html=True)
+
+    if clase_real is not None:
+        coincidencia = segmentacion.dice(mascara, mascara_manual)
+        acierto = "✅ el modelo acertó" if clase_real == resultado["clase"] else "❌ el modelo se equivocó"
+        a, b = st.columns(2)
+        a.markdown(f'<div class="dato">Diagnóstico real<br><b>{clase_real}</b><br>{acierto}</div>',
+                   unsafe_allow_html=True)
+        b.markdown(f'<div class="dato">Coincidencia con el radiólogo<br><b>{100 * coincidencia:.0f} %</b><br>'
+                   f'del contorno</div>', unsafe_allow_html=True)
+        st.caption("**Coincidencia con el radiólogo** (coeficiente de Dice): cuánto se superpone nuestra segmentación "
+                   "(verde) con el contorno que dibujó el médico (amarillo). 100 % = idénticas, 0 % = no se tocan. "
+                   "En promedio el método logra ~65 %.")
 
     zona = recorte(mascara, img.shape)
     vista = a_rgb(resultado["imagen_limpia"])
@@ -211,8 +252,12 @@ with col_resultado:
         vista = pintar(vista, contorno(mascara_manual), COLOR_MANUAL)
     vista = pintar(vista, contorno(mascara), COLOR_SEGMENTACION)
     st.image(con_semilla(vista, semilla).crop((zona[1].start, zona[0].start, zona[1].stop, zona[0].stop)),
-             caption="Segmentación (verde)" + (" y máscara del radiólogo (amarillo)" if mostrar_manual else ""),
              width="stretch")
+    leyenda = '<span style="background:#00E600"></span>segmentación del método'
+    if mostrar_manual:
+        leyenda += '<span style="background:#FFD700"></span>contorno del radiólogo'
+    st.markdown(f'<div class="leyenda" style="font-size:.85rem">{leyenda}'
+                f'<span style="background:#FF0000"></span>tu clic</div>', unsafe_allow_html=True)
 
 st.divider()
 st.subheader("Cada paso del método")
