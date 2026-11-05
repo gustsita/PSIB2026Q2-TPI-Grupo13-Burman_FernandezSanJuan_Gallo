@@ -29,10 +29,11 @@ src/busi/
     descriptores.py    # Parte 6: descriptores BI-RADS + estadística benigno/maligno
     modelo.py          # camino completo de un caso nuevo: limpiar, segmentar, describir, clasificar
 modelos/               # clasificador entrenado (clasificador_busi.joblib)
+ejemplos/              # 8 imágenes de BUSI con máscara, para la interfaz sin el dataset
 notebooks/             # un notebook por parte (00 = exploración del dataset)
 data/raw/              # dataset (NO se sube a GitHub)
 outputs/               # resultados generados por los notebooks y scripts (no se sube)
-docs/                  # anteproyecto, material de la cátedra y RESUMEN.md
+docs/                  # anteproyecto, material de la cátedra, RESUMEN.md y robustez_clic.csv
 ```
 
 ## Puesta en marcha
@@ -109,7 +110,12 @@ y la interfaz lo avisa cuando la región llega al borde de la ventana. Con otra 
 
 ### Versión en línea (sin instalar nada)
 
-La interfaz está preparada para publicarse en Streamlit Community Cloud, pero todavía no tiene un link público: por ahora se corre en local con el comando de arriba.
+**Link:** <https://psibtpigrupo13.streamlit.app/>
+
+Está publicada en Streamlit Community Cloud desde un fork del repositorio
+([`lusanjuan/PSIB_TPI_GRUPO_13`](https://github.com/lusanjuan/PSIB_TPI_GRUPO_13)), así que muestra la
+versión de ese fork: después de un cambio en `main`, hay que entrar al fork y tocar *Sync fork* →
+*Update branch* para que la app se actualice.
 
 Como el dataset no se sube a GitHub, si no encuentra `data/raw/` la interfaz usa las 8 imágenes de
 `ejemplos/` (4 benignas y 4 malignas de BUSI, con su máscara). Entre ellas hay dos en las que el
