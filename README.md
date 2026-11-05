@@ -103,9 +103,13 @@ imagen es de BUSI) y tres pestañas con cada paso: las marcas del ecógrafo que 
 los mapas de características (Parte 4) y los 26 descriptores comparados con las medianas de cada
 clase (Parte 6). Usa el mismo modelo de `modelos/` que `scripts/predecir.py`.
 
+En la barra de la izquierda también se puede cambiar el tamaño de la ventana de segmentación. Por defecto es de
+200 px, la que mejor anda en promedio y con la que se entrenó el modelo. Si la lesión es más grande queda cortada,
+y la interfaz lo avisa cuando la región llega al borde de la ventana. Con otra ventana la probabilidad es menos confiable.
+
 ### Versión en línea (sin instalar nada)
 
-**Link:** _se completa al publicarla en Streamlit Community Cloud_
+La interfaz está preparada para publicarse en Streamlit Community Cloud, pero todavía no tiene un link público: por ahora se corre en local con el comando de arriba.
 
 Como el dataset no se sube a GitHub, si no encuentra `data/raw/` la interfaz usa las 8 imágenes de
 `ejemplos/` (4 benignas y 4 malignas de BUSI, con su máscara). Entre ellas hay dos en las que el
@@ -133,7 +137,7 @@ python scripts/predecir.py carpeta/ --usar-mascaras
 
 Si el nombre del archivo tiene espacios, va entre comillas. El resultado aparece en la terminal, por ejemplo `maligna  (P(maligna) = 0.77)`. En `outputs/casos_incognita/` quedan una figura por imagen, con las marcas detectadas, la segmentación y los índices de la lesión, y la tabla `resultados.csv` con los 26 descriptores.
 
-**Limitaciones:** el resultado depende del punto elegido y el modelo asume que hay una lesión, así que no detecta imágenes normales. El rendimiento esperable es el de la validación cruzada: AUC 0,85, sensibilidad 0,82 y especificidad 0,76. Es una herramienta de apoyo, no un diagnóstico.
+**Limitaciones:** el resultado depende del punto elegido, la ventana de 200 px corta las lesiones grandes y el modelo asume que hay una lesión, así que no detecta imágenes normales. El rendimiento esperable es el de la validación cruzada: AUC 0,85, sensibilidad 0,82 y especificidad 0,76. Es una herramienta de apoyo, no un diagnóstico.
 
 Para volver a entrenar el modelo (requiere el dataset, tarda unos minutos):
 

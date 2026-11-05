@@ -142,6 +142,9 @@ elegidos en 194 imágenes y evaluados en las 453 restantes contra la lesión de 
   la textura, el área, el alto/ancho y la excentricidad. Los duplicados casi no inflan el AUC (≤ 0,006).
 - **Estimación realista del sistema completo** (clic → segmentación → descriptores → clasificador):
   **AUC ≈ 0,85**.
+- **Dependencia del clic:** al probar 6 puntos dentro de la lesión en 640 imágenes, la clase cambió en 167
+  (26 %). Los resultados están en `docs/robustez_clic.csv`: la clase cambia cuando `pmin` < 0,5 ≤ `pmax`
+  (probabilidad de maligna mínima y máxima entre los 6 puntos).
 
 ## Conclusiones generales
 
