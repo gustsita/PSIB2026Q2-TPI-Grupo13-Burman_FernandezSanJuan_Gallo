@@ -25,16 +25,18 @@ AREA_MINIMA = 10                                                        # px, ig
 UMBRAL = 0.5                                                            # igual que en la Parte 6
 
 
-def analizar_lesion(img, semilla):
+def analizar_lesion(img, semilla, lado=None):
     """Limpia la imagen, segmenta desde la semilla y calcula los descriptores.
 
     img: imagen original en gris (datos.cargar_imagen). semilla: (fila, columna) dentro de la lesión.
+    lado: tamaño de la ventana de trabajo en px; None = el de SEGMENTACION (200, con el que se entrenó).
     Devuelve (img_limpia, marcas, mascara, descriptores); descriptores es None si la
     segmentación quedó vacía.
     """
+    config = dict(SEGMENTACION, lado=lado) if lado else SEGMENTACION
     limpia, marcas = artefactos.limpiar(img)
     mapas = segmentacion.mapas_segmentacion(limpia)
-    mascara = segmentacion.segmentar(mapas, tuple(int(v) for v in semilla), **SEGMENTACION)
+    mascara = segmentacion.segmentar(mapas, tuple(int(v) for v in semilla), **config)
     if mascara.sum() < AREA_MINIMA:
         return limpia, marcas, mascara, None
     return limpia, marcas, mascara, descriptores.descriptores_caso(limpia, mascara, excluir=marcas)
@@ -60,13 +62,13 @@ def cargar(archivo=ARCHIVO_MODELO):
     return joblib.load(archivo)
 
 
-def predecir(guardado, img, semilla):
+def predecir(guardado, img, semilla, lado=None):
     """Clasifica una lesión. Devuelve un dict con las imágenes intermedias, la probabilidad y la clase.
 
     Sin segmentación válida, probabilidad, clase y descriptores quedan en None. El modelo asume que hay una
-    lesión en la semilla: no detecta imágenes normales.
+    lesión en la semilla: no detecta imágenes normales. lado: ver analizar_lesion.
     """
-    limpia, marcas, mascara, valores = analizar_lesion(img, semilla)
+    limpia, marcas, mascara, valores = analizar_lesion(img, semilla, lado)
     resultado = {"imagen_limpia": limpia, "marcas": marcas, "mascara": mascara, "descriptores": valores,
                  "area_px": int(mascara.sum()), "probabilidad_maligna": None, "clase": None}
     if valores is not None:
