@@ -133,7 +133,7 @@ python scripts/predecir.py carpeta/ --usar-mascaras
 
 Si el nombre del archivo tiene espacios, va entre comillas. El resultado aparece en la terminal, por ejemplo `maligna  (P(maligna) = 0.77)`. En `outputs/casos_incognita/` quedan una figura por imagen, con las marcas detectadas, la segmentación y los índices de la lesión, y la tabla `resultados.csv` con los 26 descriptores.
 
-**Limitaciones:** el resultado depende del punto elegido (la clase cambió en el 26 % de 640 imágenes al probar 6 puntos dentro de la lesión) y el modelo asume que hay una lesión, así que no detecta imágenes normales. El rendimiento esperable es el de la validación cruzada: AUC 0,85, sensibilidad 0,82 y especificidad 0,76. Es una herramienta de apoyo, no un diagnóstico.
+**Limitaciones:** el resultado depende del punto elegido y el modelo asume que hay una lesión, así que no detecta imágenes normales. El rendimiento esperable es el de la validación cruzada: AUC 0,85, sensibilidad 0,82 y especificidad 0,76. Es una herramienta de apoyo, no un diagnóstico.
 
 Para volver a entrenar el modelo (requiere el dataset, tarda unos minutos):
 

@@ -96,7 +96,7 @@ elegidos en 194 imágenes y evaluados en las 453 restantes contra la lesión de 
 | Otsu (media local) | 0,582 | 0,445 |
 | k-means (media, σ/μ, gradiente) | 0,568 | 0,432 |
 
-- El mejor le gana a los otros cinco (Wilcoxon pareado, p ≤ 10⁻⁶). Casi no hubo sobreajuste
+- El mejor le gana a los otros cinco (Wilcoxon pareado, p ≤ 5·10⁻⁶). Casi no hubo sobreajuste
   (0,669 en ajuste, 0,654 en evaluación).
 - La **ventana de trabajo fija** (200 px alrededor de la semilla) es el parámetro más importante:
   sin ella todos los métodos caen a 0,40–0,56.
