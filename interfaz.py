@@ -52,13 +52,25 @@ def cargar_modelo():
     return modelo.cargar()
 
 
+CARPETA_EJEMPLOS = Path(__file__).parent / "ejemplos"
+
+
 @st.cache_data
 def casos_busi():
+    """Casos con lesión de BUSI (data/raw). Si el dataset no está, usa las 8 imágenes de ejemplos/.
+
+    Devuelve (casos, son_ejemplos). Así la interfaz publicada en internet anda sin bajar BUSI.
+    """
     try:
-        casos = listar_casos()
+        casos, son_ejemplos = listar_casos(), False
     except FileNotFoundError:
-        return None
-    return casos[casos["clase"] != "normal"].set_index("id")
+        if not CARPETA_EJEMPLOS.exists():
+            return None, False
+        casos, son_ejemplos = listar_casos(CARPETA_EJEMPLOS), True
+    casos = casos[casos["clase"] != "normal"]
+    if casos.empty:
+        return None, False
+    return casos.set_index("id"), son_ejemplos
 
 
 @st.cache_data(show_spinner="Limpiando, segmentando y calculando descriptores...")
@@ -143,7 +155,7 @@ st.markdown('<div class="pasos"><div class="paso">① Elegí una ecografía (bar
             '<div class="paso">③ Mirá el resultado y cada paso del método</div></div>', unsafe_allow_html=True)
 
 guardado = cargar_modelo()
-casos = casos_busi()
+casos, son_ejemplos = casos_busi()
 m = guardado["metricas"]
 
 # ① Elegir la imagen
@@ -162,6 +174,9 @@ with st.sidebar:
         if st.button("🎲 Otra imagen al azar", width="stretch"):
             st.session_state["id_caso"] = str(np.random.choice(ids))
         id_caso = st.selectbox(f"Imagen ({len(ids)} {clase.lower()})", ids, key="id_caso")
+        if son_ejemplos:
+            st.caption("Versión en línea: 8 imágenes de ejemplo de BUSI (el dataset completo no está en GitHub). "
+                       "También podés subir una imagen propia.")
         img = cargar_imagen(casos.loc[id_caso, "ruta"])
         mascara_manual = segmentacion.lesion_principal(cargar_mascara(casos.loc[id_caso, "mascaras"], img.shape))
         nombre, clase_real = id_caso, ("benigna" if codigo == "benign" else "maligna")

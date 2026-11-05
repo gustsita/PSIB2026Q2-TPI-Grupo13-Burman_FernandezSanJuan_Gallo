@@ -103,6 +103,19 @@ imagen es de BUSI) y tres pestañas con cada paso: las marcas del ecógrafo que 
 los mapas de características (Parte 4) y los 26 descriptores comparados con las medianas de cada
 clase (Parte 6). Usa el mismo modelo de `modelos/` que `scripts/predecir.py`.
 
+### Versión en línea (sin instalar nada)
+
+**Link:** _se completa al publicarla en Streamlit Community Cloud_
+
+Como el dataset no se sube a GitHub, si no encuentra `data/raw/` la interfaz usa las 8 imágenes de
+`ejemplos/` (4 benignas y 4 malignas de BUSI, con su máscara). Entre ellas hay dos en las que el
+modelo se equivoca (`benign (342)` y `malignant (169)`), para mostrar también sus límites. Además se
+puede subir cualquier ecografía propia.
+
+Para publicarla: en [share.streamlit.io](https://share.streamlit.io), *Create app* → este repositorio,
+rama `main`, archivo `interfaz.py` (en *Advanced settings*, Python 3.12). Instala lo de
+`requirements.txt`; `scikit-learn` está fijado en la versión con la que se entrenó el modelo.
+
 ## Clasificar casos nuevos (casos incógnita)
 
 El clasificador ya entrenado está en `modelos/`, así que para usarlo alcanza con instalar las dependencias: no hace falta el dataset. El método es semiautomático y necesita un punto dentro de la lesión (la semilla). Hay tres formas de darlo:

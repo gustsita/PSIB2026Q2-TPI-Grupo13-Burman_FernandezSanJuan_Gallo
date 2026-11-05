@@ -4,12 +4,12 @@ scipy
 pandas
 
 # Imágenes
-opencv-python
+opencv-python-headless
 scikit-image
 Pillow
 
 # Clasificador y métricas
-scikit-learn
+scikit-learn==1.9.1  # misma versión con la que se entrenó modelos/clasificador_busi.joblib
 joblib
 
 # Gráficos
