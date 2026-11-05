@@ -36,6 +36,7 @@ ANCHO_CLIC = 620                 # px de pantalla de la imagen donde se hace cli
 COLOR_SEGMENTACION = (0, 230, 0)
 COLOR_MANUAL = (255, 215, 0)
 COLOR_MARCAS = (255, 60, 30)
+LADO_ENTRENAMIENTO = modelo.SEGMENTACION["lado"]   # 200 px: la ventana con la que se entrenó el clasificador
 
 NOMBRES_DESCRIPTORES = {
     "area": "Área (px)", "alto_ancho": "Alto / ancho", "circularidad": "Circularidad",
@@ -74,12 +75,22 @@ def casos_busi():
 
 
 @st.cache_data(show_spinner="Limpiando, segmentando y calculando descriptores...")
-def analizar(img, semilla):
-    """Corre el método completo sobre una imagen y una semilla (fila, columna)."""
+def analizar(img, semilla, lado):
+    """Corre el método completo sobre una imagen, una semilla (fila, columna) y una ventana de `lado` px."""
     guardado = cargar_modelo()
-    resultado = modelo.predecir(guardado, img, semilla)
+    resultado = modelo.predecir(guardado, img, semilla, lado)
     mapas = segmentacion.mapas_segmentacion(resultado["imagen_limpia"])
     return resultado, mapas
+
+
+def toca_ventana(mascara, semilla, lado):
+    """True si la segmentación llega a un borde de la ventana que no es borde de la imagen (quedó cortada)."""
+    filas, cols = segmentacion.zona_trabajo(mascara.shape, semilla, lado)
+    h, w = mascara.shape
+    return bool((filas.start > 0 and mascara[filas.start, cols].any())
+                or (filas.stop < h and mascara[filas.stop - 1, cols].any())
+                or (cols.start > 0 and mascara[filas, cols.start].any())
+                or (cols.stop < w and mascara[filas, cols.stop - 1].any()))
 
 
 # ---- Dibujo -------------------------------------------------------------------
@@ -196,6 +207,12 @@ with st.sidebar:
                                                  help="Usa el punto más central del contorno del radiólogo."):
         st.session_state["semilla"] = (nombre, tuple(int(v) for v in segmentacion.semilla_desde_mascara(mascara_manual)))
 
+    lado = st.select_slider(
+        "Tamaño de la ventana (px)", options=[150, 200, 250, 300, 400, 500], value=LADO_ENTRENAMIENTO,
+        help="La segmentación crece solo dentro de un cuadrado de este lado centrado en el clic. Si la lesión es "
+             "más grande, queda cortada en línea recta: agrandá la ventana. Con ventanas grandes puede derramarse "
+             "al tejido de alrededor. El modelo se entrenó con 200 px.")
+
     st.divider()
     st.caption(f"**Qué tan bien anda:** en {m['lesiones']} lesiones de BUSI acierta el {100 * m['sensibilidad']:.0f} % "
                f"de las malignas y el {100 * m['especificidad']:.0f} % de las benignas (AUC {m['auc']:.2f}). "
@@ -231,7 +248,7 @@ if semilla is None:
         st.info("👈 Hacé clic dentro de la lesión para ver la segmentación y la clasificación.")
     st.stop()
 
-resultado, mapas = analizar(img, semilla)
+resultado, mapas = analizar(img, semilla, lado)
 mascara = resultado["mascara"]
 
 with col_resultado:
@@ -239,6 +256,12 @@ with col_resultado:
     if resultado["clase"] is None:
         st.error("No se pudo segmentar desde ese punto. Probá con un clic más adentro de la lesión.")
         st.stop()
+    if toca_ventana(mascara, semilla, lado):
+        st.warning(f"La segmentación llegó al borde de la ventana de {lado} px: si ves bordes rectos, la lesión "
+                   "quedó cortada. Probá agrandar la ventana en la barra de la izquierda.")
+    if lado != LADO_ENTRENAMIENTO:
+        st.caption(f"⚠️ Ventana de {lado} px: el modelo se entrenó con {LADO_ENTRENAMIENTO} px, así que la "
+                   "probabilidad es menos confiable.")
     p = resultado["probabilidad_maligna"]
     estilo = "maligna" if resultado["clase"] == "maligna" else "benigna"
     st.markdown(f"""
@@ -323,12 +346,13 @@ with tab_como:
 2. **Mapas** (Parte 4): media local, σ/μ y gradiente. El brillo es lo que más separa la lesión del tejido.
 3. **Segmentación** (Parte 5): crecimiento de regiones desde el clic sobre la imagen filtrada con la mediana 7×7,
    tolerancia 30 niveles de gris, dentro de una ventana de 200 px alrededor del clic, y refinamiento morfológico.
-   En BUSI da Dice 0,65 en promedio.
+   En BUSI da Dice 0,65 en promedio. La ventana se puede cambiar en la barra de la izquierda: sirve para lesiones
+   grandes, pero 200 px es la que mejor anda en promedio, porque frena el derrame hacia el tejido.
 4. **Descriptores y clasificación** (Parte 6): 26 descriptores y una regresión logística entrenada con las lesiones de
    BUSI segmentadas de la misma forma. AUC {m['auc']:.2f}, sensibilidad {m['sensibilidad']:.2f},
    especificidad {m['especificidad']:.2f}.
 
-**Limitaciones:** el resultado cambia según dónde se haga clic; lesiones más grandes que la ventana de 200 px quedan
-cortadas; el modelo supone que hay una lesión; se entrenó con un solo equipo y un solo hospital. Detalles en
+**Limitaciones:** el resultado cambia según dónde se haga clic; lesiones más grandes que la ventana quedan
+cortadas (se puede agrandar, pero el modelo se entrenó con 200 px); el modelo supone que hay una lesión; se entrenó con un solo equipo y un solo hospital. Detalles en
 `docs/RESUMEN.md` y en los notebooks.
 """)
