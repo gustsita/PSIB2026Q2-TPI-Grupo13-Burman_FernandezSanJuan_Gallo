@@ -202,12 +202,6 @@ img, mascara = cargar_caso(casos.iloc[0])
 
 ## Uso de herramientas de inteligencia artificial
 
-Durante el trabajo usamos asistentes de IA (Claude) como apoyo para tareas puntuales: depurar y
-ordenar código, armar la interfaz en Streamlit, manejar Git y GitHub, y revisar la redacción y la
-consistencia de los números entre los notebooks, el README y el resumen.
+Durante el trabajo usamos asistentes de IA (Claude) como apoyo para tareas puntuales: armar, depurar y ordenar código, armar la interfaz en Streamlit, manejar Git y GitHub, y revisar la redacción y la consistencia de los números entre los notebooks, el README y el resumen.
 
-El planteo del problema, las hipótesis, el diseño de los experimentos, la elección de los métodos y
-la interpretación de los resultados son nuestros. Todo el código y el texto generados con ayuda de
-IA fueron revisados, probados y corregidos por el grupo, y los resultados que se informan salen de
-correr nosotras mismas los notebooks sobre el dataset. Somos responsables de todo el contenido
-del repositorio.
+El planteo del problema, las hipótesis, el diseño de los experimentos, la elección de los métodos y la interpretación de los resultados son nuestros. Todo el código y el texto generados con ayuda de IA fueron revisados, probados y corregidos por el grupo. 
